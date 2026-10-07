@@ -19,10 +19,18 @@ public:
     /// Initialises all 9 bodies using compressed visualization-scale data.
     SolarSystem();
 
+    /// Advances the simulation by deltaTime seconds.
+    void update(float deltaTime);
+
     const std::vector<CelestialBody>& getBodies() const { return m_bodies; }
+    
+    // ── Phase 7: Hierarchy (Moon) ──────────────────────────────────────────
+    const CelestialBody& getMoon() const { return m_moon; }
+    glm::mat4 getMoonModelMatrix() const;
 
 private:
     std::vector<CelestialBody> m_bodies;
+    CelestialBody              m_moon;
 
     void initBodies();
 };

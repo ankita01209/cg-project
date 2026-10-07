@@ -23,19 +23,52 @@ out vec4 FragColor;
 /// Per-draw-call colour set by the CPU for each celestial body
 uniform vec3 uColor;
 
+// ── Phase 8: Lighting Uniforms ────────────────────────────────────────────────
+uniform vec3 uLightPos;
+uniform vec3 uViewPos;
+uniform int  uIsEmissive;
+
 void main()
 {
-    // Re-normalise after interpolation (can drift slightly across a triangle)
+    // Phase 5: Debug stripe to prove rotation is working.
+    // vTexCoord.x is longitude, circling the sphere 0.0 -> 1.0.
+    // Kept faint so we can still see rotation even on lit uniform spheres.
+    float isStripe = step(0.96, fract(vTexCoord.x * 4.0)); 
+    vec3 surfaceColor = mix(uColor, vec3(1.0), isStripe * 0.15); // faint stripe
+
+    if (uIsEmissive == 1)
+    {
+        // The Sun is emissive and unlit.
+        // It provides the light, so it shouldn't be shaded by its own light.
+        FragColor = vec4(surfaceColor, 1.0);
+        return;
+    }
+
+    // CG concept – Blinn-Phong Lighting Model
+    // 1. Ambient: constant low-level light simulating indirect bounce
+    // 2. Diffuse: directional light scattered in all directions (Lambertian)
+    // 3. Specular: shiny highlight where light reflects directly into the camera
+
     vec3 N = normalize(vNormal);
+    vec3 L = normalize(uLightPos - vFragPos);
+    vec3 V = normalize(uViewPos - vFragPos);
 
-    // CG concept – Simple brightness from normal orientation:
-    //   N.z is the Z component of the world-space normal. For a sphere facing
-    //   the camera (+Z direction), front-facing normals have N.z ≈ +1
-    //   (bright), edge normals have N.z ≈ 0, and back-facing ones are culled.
-    //   Remapping to [0.25, 1.0] prevents the dark side from going fully black,
-    //   giving a readable depth cue without a real light source.
-    float brightness = N.z * 0.5 + 0.5;         // remap [-1,1] → [0, 1]
-    brightness       = 0.30f + brightness * 0.70f; // clamp minimum to 0.30
+    // 1. Ambient
+    float ambientStrength = 0.05;
+    vec3 ambient = ambientStrength * surfaceColor;
 
-    FragColor = vec4(uColor * brightness, 1.0);
+    // 2. Diffuse
+    float diff = max(dot(N, L), 0.0);
+    vec3 diffuse = diff * surfaceColor;
+
+    // 3. Specular (Blinn-Phong uses Halfway vector H)
+    float specularStrength = 0.3;
+    vec3 H = normalize(L + V);
+    float spec = pow(max(dot(N, H), 0.0), 32.0); // 32 is shininess
+    // We colour the specular highlight slightly towards white
+    vec3 specular = specularStrength * spec * vec3(1.0);
+
+    // Final composition
+    vec3 finalColor = ambient + diffuse + specular;
+    FragColor = vec4(finalColor, 1.0);
 }

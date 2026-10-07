@@ -26,4 +26,8 @@ namespace render {
 /// @param slices  Number of vertical longitude segments; higher = smoother silhouette
 Mesh createSphere(float radius = 1.0f, int stacks = 32, int slices = 32);
 
+// ── Addition 1: Saturn Rings ────────────────────────────────────────────────
+/// Creates a 2D flat annulus (ring) in the XZ plane with per-vertex normals pointing +Y
+Mesh createRing(float innerRadius = 1.2f, float outerRadius = 2.0f, int slices = 64);
+
 } // namespace render

@@ -1,2 +1,12 @@
-﻿build/
-.vscode/
+﻿# Build directory
+build/
+
+# Generated build/debug output
+*.log
+*_out.txt
+build_err*.txt
+debug_output.txt
+search_out.txt
+
+# ImGui generated settings
+imgui.ini

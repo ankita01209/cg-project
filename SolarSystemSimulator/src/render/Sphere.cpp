@@ -114,4 +114,60 @@ Mesh createSphere(float radius, int stacks, int slices)
     return Mesh(vertices, indices);
 }
 
+// =============================================================================
+// Addition 1: Saturn Rings - Procedural Annulus
+// =============================================================================
+Mesh createRing(float innerRadius, float outerRadius, int slices)
+{
+    std::vector<Vertex>       vertices;
+    std::vector<unsigned int> indices;
+
+    const float twoPi = glm::two_pi<float>();
+    
+    // Generate slice+1 rings of 2 vertices (inner, outer)
+    for (int i = 0; i <= slices; ++i)
+    {
+        float theta = static_cast<float>(i) * twoPi / static_cast<float>(slices);
+        float texU  = static_cast<float>(i) / static_cast<float>(slices); // u wraps 0->1
+        
+        float cosT = std::cos(theta);
+        float sinT = std::sin(theta);
+        
+        // Inner radius vertex
+        Vertex inV;
+        inV.position = glm::vec3(innerRadius * cosT, 0.0f, innerRadius * sinT);
+        inV.normal   = glm::vec3(0.0f, 1.0f, 0.0f);
+        inV.texCoord = glm::vec2(texU, 0.0f);
+        vertices.push_back(inV);
+        
+        // Outer radius vertex
+        Vertex outV;
+        outV.position = glm::vec3(outerRadius * cosT, 0.0f, outerRadius * sinT);
+        outV.normal   = glm::vec3(0.0f, 1.0f, 0.0f);
+        outV.texCoord = glm::vec2(texU, 1.0f);
+        vertices.push_back(outV);
+    }
+    
+    // Generate indices (quads split into 2 triangles)
+    for (int i = 0; i < slices; ++i)
+    {
+        unsigned int in1  = static_cast<unsigned int>(i * 2);
+        unsigned int out1 = static_cast<unsigned int>(i * 2 + 1);
+        unsigned int in2  = static_cast<unsigned int>((i + 1) * 2);
+        unsigned int out2 = static_cast<unsigned int>((i + 1) * 2 + 1);
+        
+        // Triangle 1 (CCW)
+        indices.push_back(in1);
+        indices.push_back(in2);
+        indices.push_back(out1);
+        
+        // Triangle 2 (CCW)
+        indices.push_back(out1);
+        indices.push_back(in2);
+        indices.push_back(out2);
+    }
+    
+    return Mesh(vertices, indices);
+}
+
 } // namespace render

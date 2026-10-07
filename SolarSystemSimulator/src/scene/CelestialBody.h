@@ -26,11 +26,26 @@ struct CelestialBody
     // ── Physical params (visualization scale, NOT astronomical) ──────────────
     // Real scales span ~5 orders of magnitude; we compress them so every body
     // is large enough to see and the whole system fits in one viewport.
-    float radius;               ///< Visual radius in world units
-    float orbitDistance;        ///< Distance from the Sun in world units (0 = Sun)
+    float radius;               ///< Visual radius in world units (SCALE)
+    float orbitDistance;        ///< Distance from the Sun in world units
 
-    // ── World-space transform (set once at init, no motion yet) ──────────────
-    glm::vec3 position;         ///< Centre of this body in world space
+    // ── Animation speeds ──────────────────────────────────────────────────────
+    float orbitalSpeed;         ///< Radians per second around the Sun
+    float rotationSpeed;        ///< Radians per second around self Y-axis
+
+    // ── World-space transform (set once at init, updated in render loop) ─────
+    float     currentOrbitAngle;///< Current position along the orbit (radians)
+    glm::vec3 position;         ///< Centre of this body in world space (TRANSLATION)
+    float     selfRotationAngle;///< Rotation around the +Y axis in radians (ROTATION)
+
+    // ── Addition 1: Saturn Rings ──────────────────────────────────────────────
+    float ringInnerRadius = 0.0f;       // If 0, body has no ring
+    float ringOuterRadius = 0.0f;
+    float ringTiltAngle   = 0.0f;       // Fixed axial tilt (radians)
+
+    // CG concept — Model Matrix construction:
+    // Computes the local-to-world transformation matrix for this specific body.
+    glm::mat4 getModelMatrix() const;
 };
 
 } // namespace scene

@@ -28,6 +28,15 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(glm)
 
+# ImGui – UI library
+FetchContent_Declare(
+    imgui
+    GIT_REPOSITORY https://github.com/ocornut/imgui.git
+    GIT_TAG        v1.90.1
+    GIT_SHALLOW    TRUE
+)
+FetchContent_MakeAvailable(imgui)
+
 # ─── GLAD (vendored) ──────────────────────────────────────────────────────────
 # Pre-generated for OpenGL 3.3 Core profile.
 # Source: https://glad.dav1d.de (gl=Version 3.3, profile=Core, no extensions)
@@ -54,11 +63,24 @@ add_executable(${PROJECT_NAME}
     src/render/Mesh.cpp
     src/render/Sphere.cpp
     src/scene/SolarSystem.cpp
+    src/scene/CelestialBody.cpp
+    src/input/InputManager.cpp
+    src/ui/UIOverlay.cpp
+
+    # ImGui sources
+    ${imgui_SOURCE_DIR}/imgui.cpp
+    ${imgui_SOURCE_DIR}/imgui_draw.cpp
+    ${imgui_SOURCE_DIR}/imgui_tables.cpp
+    ${imgui_SOURCE_DIR}/imgui_widgets.cpp
+    ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
+    ${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE
     src
     libs/glad/include
+    ${imgui_SOURCE_DIR}
+    ${imgui_SOURCE_DIR}/backends
 )
 
 # ASSETS_DIR is used in main.cpp to locate shader files at runtime.
@@ -66,6 +88,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 # shaders regardless of the working directory it is launched from.
 target_compile_definitions(${PROJECT_NAME} PRIVATE
     ASSETS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/assets/"
+    GLFW_INCLUDE_NONE
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
