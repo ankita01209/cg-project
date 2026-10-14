@@ -10,3 +10,11 @@ search_out.txt
 
 # ImGui generated settings
 imgui.ini
+
+# Generated build files and logs
+SolarSystemSimulator/build-gcc/
+*_log.txt
+performance_log.txt
+transform_log.csv
+
+build_log_utf8.txt
