@@ -1,4 +1,4 @@
-﻿#version 330 core
+#version 330 core
 // =============================================================================
 // basic.frag â€” Phase 4: flat per-body colour with subtle normal shading
 //
