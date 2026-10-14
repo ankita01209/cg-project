@@ -91,7 +91,7 @@ void InputManager::update(float deltaTime)
         else if (m_tourState == TourState::Dwelling)
         {
             m_tourTimer += deltaTime;
-            const float dwellDuration = 3.5f;
+            const float dwellDuration = 4.8f; // Session 3 (Fix 3): Syncs with 3 Fun Facts x 1.6s each
             
             // Still track the body as it orbits (crucial for fast orbital speeds)
             m_camera.setTarget(targetBody.position);

@@ -15,6 +15,8 @@
 #include <glm/glm.hpp>
 #include <string>
 
+namespace render { class Texture; }
+
 namespace scene {
 
 struct CelestialBody
@@ -42,6 +44,9 @@ struct CelestialBody
     float ringInnerRadius = 0.0f;       // If 0, body has no ring
     float ringOuterRadius = 0.0f;
     float ringTiltAngle   = 0.0f;       // Fixed axial tilt (radians)
+
+    // ── Phase 3: Planetary Textures ──────────────────────────────────────────
+    render::Texture* texture = nullptr;
 
     // CG concept — Model Matrix construction:
     // Computes the local-to-world transformation matrix for this specific body.

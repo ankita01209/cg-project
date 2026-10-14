@@ -62,8 +62,12 @@ add_executable(${PROJECT_NAME}
     src/camera/Camera.cpp
     src/render/Mesh.cpp
     src/render/Sphere.cpp
+    src/render/Texture.cpp
+    src/render/Bloom.cpp
+    libs/stb/stb_image.cpp
     src/scene/SolarSystem.cpp
     src/scene/CelestialBody.cpp
+    src/scene/AsteroidBelt.cpp
     src/input/InputManager.cpp
     src/ui/UIOverlay.cpp
 

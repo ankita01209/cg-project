@@ -14,11 +14,14 @@
 layout(location = 0) in vec3 aPos;       // Object-space position
 layout(location = 1) in vec3 aNormal;    // Object-space surface normal
 layout(location = 2) in vec2 aTexCoord;  // UV (reserved for textures)
+layout(location = 3) in mat4 aInstanceMatrix;
+layout(location = 7) in vec3 aInstanceColor;
 
 // ── Outputs to fragment shader ────────────────────────────────────────────────
 out vec3 vNormal;      // World-space normal (for shading / visualisation)
 out vec3 vFragPos;     // World-space fragment position (future: lighting)
 out vec2 vTexCoord;
+out vec3 vInstanceColor;
 
 // ── Uniforms ──────────────────────────────────────────────────────────────────
 // CG concept – Matrix stack:
@@ -28,21 +31,19 @@ out vec2 vTexCoord;
 uniform mat4 uModel;
 uniform mat4 uView;
 uniform mat4 uProjection;
+uniform int  uIsAsteroid;
 
 void main()
 {
+    mat4 modelMat = (uIsAsteroid == 1) ? aInstanceMatrix : uModel;
+
     // World-space position (needed for lighting in later phases)
-    vec4 worldPos = uModel * vec4(aPos, 1.0);
+    vec4 worldPos = modelMat * vec4(aPos, 1.0);
     vFragPos  = worldPos.xyz;
 
-    // CG concept – Normal matrix:
-    //   When the model matrix contains non-uniform scaling, normals must be
-    //   transformed by transpose(inverse(model)) to stay perpendicular to the
-    //   surface. For uniform scaling (like our sphere) mat3(uModel) suffices,
-    //   but the correct form is already here, ready for general use.
-    vNormal   = mat3(transpose(inverse(uModel))) * aNormal;
-
+    vNormal   = mat3(transpose(inverse(modelMat))) * aNormal;
     vTexCoord = aTexCoord;
+    vInstanceColor = aInstanceColor;
 
     // Final clip-space position. Order matters: P * V * M * vertex.
     gl_Position = uProjection * uView * worldPos;

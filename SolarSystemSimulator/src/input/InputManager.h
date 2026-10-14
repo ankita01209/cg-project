@@ -35,6 +35,7 @@ public:
     enum class TourState { Off, Transitioning, Dwelling };
     TourState getTourState() const { return m_tourState; }
     int       getTourTargetIndex() const { return m_tourTargetIndex; }
+    float     getTourTimer() const { return m_tourTimer; } // Addition 2: Timer access for UI Fades
 
 private:
     core::Window&        m_window;

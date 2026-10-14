@@ -117,4 +117,13 @@ void Mesh::draw() const
     glBindVertexArray(0);
 }
 
+void Mesh::drawInstanced(int count) const
+{
+    glBindVertexArray(m_vao);
+    glDrawElementsInstanced(GL_TRIANGLES,
+                   static_cast<GLsizei>(m_indexCount),
+                   GL_UNSIGNED_INT, nullptr, count);
+    glBindVertexArray(0);
+}
+
 } // namespace render

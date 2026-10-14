@@ -43,11 +43,11 @@ public:
 
     /// Issue the draw call for this mesh (requires a shader to be bound first)
     void draw() const;
+    void drawInstanced(int count) const; // Phase 1: Asteroid belt GPU instancing
 
     int indexCount()  const { return m_indexCount;  }
     int vertexCount() const { return m_vertexCount; }
-
-private:
+    GLuint getVAO()   const { return m_vao; } // Phase 1: Expose VAO for attaching instance buffers
     GLuint m_vao        = 0;
     GLuint m_vbo        = 0;
     GLuint m_ebo        = 0;
