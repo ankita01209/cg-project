@@ -37,7 +37,7 @@ public:
     /// @param bloom  Feature 2: Bloom settings are read/written by the Observatory tab.
     void renderPanel(const scene::SolarSystem& solarSystem,
                      scene::AsteroidBelt& asteroidBelt,
-                     const input::InputManager& inputManager,
+                     input::InputManager& inputManager,
                      render::Bloom& bloom);
 
     /// Called at the end of the render loop (before swap buffers).
@@ -47,10 +47,16 @@ public:
     void togglePerfOverlay()        { m_showPerfOverlay = !m_showPerfOverlay; }
     bool isPerfOverlayShown() const { return m_showPerfOverlay; }
 
+    // Objects tab toggles (read by main.cpp render loop)
+    bool showMoonOrbits() const  { return m_showMoonOrbits; }
+    bool showCometTails() const  { return m_showCometTails; }
+
 private:
     // ── Main panel state ─────────────────────────────────────────────────────
-    int m_compareBodyA = 0; // Default: Sun
-    int m_compareBodyB = 3; // Default: Earth
+    int  m_compareBodyA    = 0;
+    int  m_compareBodyB    = 3;
+    bool m_showMoonOrbits  = true;
+    bool m_showCometTails  = true;
 
     // ── Feature 1: Performance telemetry ring buffer ──────────────────────────
     static constexpr int FRAME_BUFFER_SIZE = 300;

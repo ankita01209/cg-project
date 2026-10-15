@@ -1,6 +1,6 @@
-#pragma once
+﻿#pragma once
 // =============================================================================
-// InputManager.h — Handles GLFW input callbacks and camera tracking
+// InputManager.h â€” Handles GLFW input callbacks and camera tracking
 //
 // CG concept: Interaction
 //   Translates raw device inputs (mouse/keyboard events) into high-level
@@ -22,16 +22,22 @@ public:
     InputManager(core::Window& window, camera::Camera& camera, scene::SolarSystem& solarSystem);
     ~InputManager();
 
-    // ── Continuous tracking ───────────────────────────────────────────────────
+    // â”€â”€ Continuous tracking â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     void update(float deltaTime);
 
-    // ── Simulation controls (Phase 10 prep) ───────────────────────────────────
+    // â”€â”€ Simulation controls (Phase 10 prep) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     bool  isPaused() const { return m_paused; }
     float getTimeScale() const { return m_timeScale; }
 
     int getFocusedBodyIndex() const { return m_focusedBodyIndex; }
+    int getFocusedAsteroidIndex() const { return m_focusedAsteroidIndex; }
 
-    // ── Addition 2: Cinematic Tour Mode ───────────────────────────────────────
+    void focusBody(int index);
+    void focusAsteroid(int index);
+    void toggleTour();
+    void startTour();
+
+    // â”€â”€ Addition 2: Cinematic Tour Mode â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     enum class TourState { Off, Transitioning, Dwelling };
     TourState getTourState() const { return m_tourState; }
     int       getTourTargetIndex() const { return m_tourTargetIndex; }
@@ -46,15 +52,16 @@ private:
     bool   m_isDragging = false;
     double m_lastMouseX = 0.0;
     double m_lastMouseY = 0.0;
-    
+
     // Focus tracking (-1 = overview, 0 = Sun, 1-8 = Planets)
-    int    m_focusedBodyIndex = -1; 
+    int    m_focusedBodyIndex = -1;
+    int    m_focusedAsteroidIndex = -1;
 
     // Addition 2: Tour State Machine
     TourState m_tourState = TourState::Off;
     int       m_tourTargetIndex = 0;
     float     m_tourTimer = 0.0f;
-    
+
     glm::vec3 m_tourStartTarget;
     float     m_tourStartDist = 5.0f;
     float     m_tourStartYaw  = 0.0f;

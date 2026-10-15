@@ -92,7 +92,7 @@ bool Texture::load(const std::string& path)
 
     double loadTime = (glfwGetTime() - startTime) * 1000.0;
     std::cout << "[Texture] Loaded " << width << "x" << height
-              << " texture from " << path << " (" << loadTime << " ms)\n";
+              << " texture from " << path << " (" << loadTime << " ms)" << std::endl;
 
     return true;
 }

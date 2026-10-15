@@ -335,7 +335,7 @@ void UIOverlay::writePerfLog() const
 
 void UIOverlay::renderPanel(const scene::SolarSystem& solarSystem,
                             scene::AsteroidBelt& asteroidBelt,
-                            const input::InputManager& inputManager,
+                            input::InputManager& inputManager,
                             render::Bloom& bloom)
 {
     // Minimalist transparent panel
@@ -362,14 +362,39 @@ void UIOverlay::renderPanel(const scene::SolarSystem& solarSystem,
                 if (inputManager.getTourState() != input::InputManager::TourState::Off)
                 {
                     int tourIdx = inputManager.getTourTargetIndex();
-                    if (tourIdx >= 0 && tourIdx < static_cast<int>(bodies.size()))
+                    if (tourIdx >= 0 && tourIdx < solarSystem.getTourStopCount())
+                    {
+                        scene::TourStopInfo stop = solarSystem.getTourStop(tourIdx);
                         ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.2f, 1.0f),
-                                           "[ Touring: %s ]", bodies[tourIdx].name.c_str());
+                                           "[ Touring: %s ]", stop.name.c_str());
+                    }
+                    if (ImGui::Button("Stop Tour [T]"))
+                        inputManager.toggleTour();
+                }
+                else
+                {
+                    if (ImGui::Button("Start Cinematic Tour [T]"))
+                        inputManager.startTour();
                 }
 
                 // 3. Focused body info
                 int focusIdx = inputManager.getFocusedBodyIndex();
-                if (focusIdx == -1)
+                int astFocusIdx = inputManager.getFocusedAsteroidIndex();
+                if (astFocusIdx >= 0 && astFocusIdx < static_cast<int>(solarSystem.getAsteroids().size()))
+                {
+                    const auto& ast = solarSystem.getAsteroids()[astFocusIdx];
+                    ImGui::TextColored(ImVec4(0.4f, 0.8f, 1.0f, 1.0f), "Target (Asteroid): %s", ast.name.c_str());
+                    ImGui::Text("Category: %s", ast.designation.c_str());
+                    ImGui::Text("Orbit Distance: %.2f wu", ast.semiMajor);
+                    ImGui::Text("Radius: %.3f wu", ast.body.radius);
+                    ImGui::Text("Inclination: %.1f deg", glm::degrees(ast.inclination));
+                    ImGui::Text("Orbital velocity: %.2f rad/s", ast.orbitalSpeed);
+                    if (ImGui::Button("Reset to Overview [Esc]"))
+                    {
+                        inputManager.focusBody(-1);
+                    }
+                }
+                else if (focusIdx == -1)
                 {
                     ImGui::Text("Target: Free / Overview (Press 0-8 to focus)");
                 }
@@ -454,6 +479,86 @@ void UIOverlay::renderPanel(const scene::SolarSystem& solarSystem,
                 ImGui::EndTabItem();
             }
 
+            // ── Objects Browser: Moons + Comets ────────────────────────────────
+            if (ImGui::BeginTabItem("Objects"))
+            {
+                const auto& moons  = solarSystem.getMoons();
+                const auto& comets = solarSystem.getComets();
+                const auto& bodies = solarSystem.getBodies();
+
+                ImGui::Checkbox("Show Moon Orbits", &m_showMoonOrbits);
+                ImGui::SameLine();
+                ImGui::Checkbox("Show Comet Tails", &m_showCometTails);
+                ImGui::Separator();
+
+                if (ImGui::CollapsingHeader("Moons", ImGuiTreeNodeFlags_DefaultOpen))
+                {
+                    for (int i = 0; i < static_cast<int>(moons.size()); ++i)
+                    {
+                        const auto& rec = moons[i];
+                        const auto& b   = rec.body;
+                        ImGui::PushID(i);
+                        ImGui::TextColored(
+                            ImVec4(b.color.r, b.color.g, b.color.b, 1.0f),
+                            "%s", b.name.c_str());
+                        ImGui::SameLine();
+                        const char* parentName = (rec.parentIndex < static_cast<int>(bodies.size()))
+                            ? bodies[rec.parentIndex].name.c_str() : "?";
+                        ImGui::TextDisabled("-> %s  r=%.3f  orbit=%.2f",
+                                           parentName, b.radius, b.orbitDistance);
+                        ImGui::PopID();
+                    }
+                }
+                if (ImGui::CollapsingHeader("Comets", ImGuiTreeNodeFlags_DefaultOpen))
+                {
+                    for (int i = 0; i < static_cast<int>(comets.size()); ++i)
+                    {
+                        const auto& c = comets[i];
+                        ImGui::PushID(1000 + i);
+                        ImGui::TextColored(
+                            ImVec4(c.body.color.r, c.body.color.g, c.body.color.b, 1.0f),
+                            "%s", c.name.c_str());
+                        ImGui::TextDisabled(" a=%.1f wu  e=%.2f", c.semiMajor, c.eccentricity);
+                        ImGui::TextWrapped(" %s", c.description.c_str());
+                        ImGui::Spacing();
+                        ImGui::PopID();
+                    }
+                }
+
+                // ── Asteroids & Minor Planets ────────────────────────────────
+                if (ImGui::CollapsingHeader("Asteroids & Minor Planets", ImGuiTreeNodeFlags_DefaultOpen))
+                {
+                    const auto& asteroids = solarSystem.getAsteroids();
+                    for (int i = 0; i < static_cast<int>(asteroids.size()); ++i)
+                    {
+                        const auto& ast = asteroids[i];
+                        const auto& b   = ast.body;
+                        ImGui::PushID(2000 + i);
+                        ImGui::TextColored(
+                            ImVec4(b.color.r, b.color.g, b.color.b, 1.0f),
+                            "%s", ast.name.c_str());
+                        ImGui::SameLine();
+                        ImGui::TextDisabled("[%s]", ast.designation.c_str());
+                        ImGui::SameLine();
+                        if (ImGui::SmallButton("Focus"))
+                        {
+                            inputManager.focusAsteroid(i);
+                        }
+                        ImGui::TextDisabled("  Orbit: %.2f wu | Inclination: %.1f deg | r: %.3f",
+                                            ast.semiMajor, glm::degrees(ast.inclination), b.radius);
+                        if (ImGui::TreeNode("Fun Facts"))
+                        {
+                            for (int f = 0; f < 3; ++f)
+                                ImGui::BulletText("%s", ast.facts[f].c_str());
+                            ImGui::TreePop();
+                        }
+                        ImGui::Spacing();
+                        ImGui::PopID();
+                    }
+                }
+                ImGui::EndTabItem();
+            }
+
             // ── Addition 4: Solar Observatory ─────────────────────────────────
             if (ImGui::BeginTabItem("Observatory"))
             {
@@ -470,17 +575,28 @@ void UIOverlay::renderPanel(const scene::SolarSystem& solarSystem,
                         asteroidBelt.setEnabled(beltEnabled);
 
                     int count = asteroidBelt.getCount();
-                    ImGui::Text("Region: Mars to Jupiter");
+                    ImGui::Text("Region: Mars (11.0 wu) to Jupiter (15.0 wu)");
                     if (beltEnabled)
                         ImGui::TextColored(ImVec4(0.4f, 1.0f, 0.4f, 1.0f),
-                                           "Status: ON | Objects: %d", count);
+                                           "Status: ON | Instanced Field: %d rocks", count);
                     else
                         ImGui::TextDisabled("Status: OFF");
 
-                    ImGui::Text("Asteroid Count:");
+                    ImGui::Text("Instanced Count:");
                     if (ImGui::RadioButton("150", count == 150)) asteroidBelt.setCount(150); ImGui::SameLine();
                     if (ImGui::RadioButton("250", count == 250)) asteroidBelt.setCount(250); ImGui::SameLine();
                     if (ImGui::RadioButton("300", count == 300)) asteroidBelt.setCount(300);
+
+                    ImGui::Spacing();
+                    ImGui::Text("Major Recognized Asteroids:");
+                    ImGui::BulletText("1 Ceres (Dwarf planet, contains 1/3 belt mass)");
+                    ImGui::BulletText("4 Vesta (Brightest protoplanet, Rheasilvia basin)");
+                    ImGui::BulletText("2 Pallas (Steep 34.8 deg inclination, golf-ball surface)");
+                    ImGui::BulletText("10 Hygiea (Dark carbonaceous dwarf planet candidate)");
+                    ImGui::BulletText("433 Eros (Peanut-shaped Near-Earth asteroid)");
+                    ImGui::BulletText("16 Psyche (Exposed nickel-iron planetary core)");
+                    if (ImGui::Button("Tour Asteroids & Solar System [T]"))
+                        inputManager.startTour();
                 }
 
                 // ── Feature 2: Bloom / HDR controls ──────────────────────────
@@ -521,7 +637,8 @@ void UIOverlay::renderPanel(const scene::SolarSystem& solarSystem,
         if (alpha > 0.001f)
         {
             int tourIdx = inputManager.getTourTargetIndex();
-            std::string titleStr = "Now Visiting: " + solarSystem.getBodies()[tourIdx].name;
+            scene::TourStopInfo stop = solarSystem.getTourStop(tourIdx);
+            std::string titleStr = "Now Visiting: " + stop.name;
             ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(),
                                     ImGuiCond_Always, ImVec2(0.5f, 0.5f));
             if (ImGui::Begin("TitleCard", nullptr,
@@ -553,7 +670,8 @@ void UIOverlay::renderPanel(const scene::SolarSystem& solarSystem,
         if (alpha > 0.001f)
         {
             int tourIdx = inputManager.getTourTargetIndex();
-            const char* factStr = getFunFact(tourIdx, factIndex);
+            scene::TourStopInfo stop = solarSystem.getTourStop(tourIdx);
+            const char* factStr = stop.facts[factIndex % 3];
 
             ImVec2 center = ImGui::GetMainViewport()->GetCenter();
             ImGui::SetNextWindowPos(ImVec2(center.x, center.y + 150.0f),
